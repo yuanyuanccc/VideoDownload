@@ -100,10 +100,28 @@ Response: { "stream_url": "https://..." }
 |------|----------|----------|------|
 | YouTube | ✅ | ✅ | yt-dlp原生支持 |
 | Bilibili | ✅ | ✅ | yt-dlp原生支持 |
-| 抖音 | 🔄 | 🔄 | Playwright方案尝试中 |
-| TikTok | 🔄 | 🔄 | Playwright方案尝试中 |
+| 抖音 | ✅ | ✅ | iesdouyin公开API（无需登录） |
+| TikTok | ⚠️ | ⚠️ | 需要登录cookies |
 | Twitter | ✅ | ✅ | yt-dlp支持 |
 | Instagram | ✅ | ⚠️ | 部分内容需要登录 |
+
+## 6. 抖音解析方案（已实现）
+
+### 6.1 技术原理
+基于公开API `iesdouyin.com` 实现，无需登录即可解析：
+1. 短链接 `v.douyin.com/xxx` → 302重定向获取真实URL
+2. 从URL提取 `video_id`
+3. 调用 `https://www.iesdouyin.com/web/api/v2/aweme/iteminfo/` 获取视频信息
+4. 若API失败，备用方案：从分享页面提取 `window._ROUTER_DATA`
+5. 替换 `playwm` → `play` 去除水印
+
+### 6.2 开源参考
+方案参考自 [rathodpratham-dev/douyin_video_downloader](https://github.com/rathodpratham-dev/douyin_video_downloader)（MIT协议）
+
+### 6.3 支持的URL格式
+- `https://v.douyin.com/xxx/` （短链接）
+- `https://www.douyin.com/video/xxx` （视频页）
+- 搜索结果页带modal_id参数的URL
 
 ## 6. 清晰度排序逻辑
 
@@ -139,7 +157,7 @@ formats.sort((a, b) => {
 | 阶段2 | Vue3 + Vite + Tailwind 前端框架 | ✅ 完成 |
 | 阶段3 | 前后端联调 + UI精雕 | ✅ 完成 |
 | 阶段4 | 付费系统集成 | ⏳ 待开发 |
-| 阶段5 | 抖音专用解析模块 | 🔄 尝试中 |
+| 阶段5 | 抖音专用解析模块 | ✅ 完成 |
 
 ## 9. 项目文件结构
 

@@ -53,22 +53,24 @@
 |------|------|------|
 | YouTube | ✅ 正常 | yt-dlp直接支持 |
 | Bilibili | ✅ 正常 | yt-dlp直接支持 |
-| 抖音 | ❌ 需要cookies | 需要登录cookies，yt-dlp无法解析 |
-| TikTok | ❌ 需要cookies | 需要登录cookies，yt-dlp无法解析 |
+| 抖音 | ✅ 正常 | iesdouyin公开API，无需登录 |
+| TikTok | ⚠️ 部分 | 需要登录cookies |
+| Twitter | ✅ 正常 | yt-dlp支持 |
+| Instagram | ⚠️ 部分 | 部分内容需要登录 |
 
-## 7. 抖音解析技术方案（待实现）
+## 7. 抖音解析技术方案（已实现）
 
-### 7.1 尝试过的方案
-1. 直接调用抖音API - 返回空内容（需要cookies）
-2. 解析网页RENDER_DATA - 页面结构变化，无法提取
-3. 第三方免费API - 大多数已失效或需要代理
+### 7.1 最终方案：iesdouyin公开API
+采用公开API方案，无需登录cookies：
+- API地址：`https://www.iesdouyin.com/web/api/v2/aweme/iteminfo/`
+- 备用方案：从分享页面提取 `window._ROUTER_DATA`
+- 核心原理：替换URL中 `playwm` 为 `play` 去除水印
 
-### 7.2 推荐的解决方案
-1. **Playwright方案**（推荐）：使用无头浏览器渲染页面后提取视频信息
-2. **第三方付费API**：如TikHub.io（需要API Key）
-3. **配置Cookies**：从浏览器获取抖音登录Cookie
+### 7.2 支持的URL格式
+- 短链接：`https://v.douyin.com/xxx/`
+- 视频页：`https://www.douyin.com/video/xxx`
+- 带modal_id的搜索页URL
 
-### 7.3 相关资源
-- GitHub: Evil0ctal/Douyin_TikTok_Download_API (17k stars)
-- GitHub: Johnserf-Seed/TikTokDownload
-- TikHub.io API服务
+### 7.3 参考资源
+- [rathodpratham-dev/douyin_video_downloader](https://github.com/rathodpratham-dev/douyin_video_downloader)（MIT协议）
+- [Evil0ctal/Douyin_TikTok_Download_API](https://github.com/Evil0ctal/Douyin_TikTok_Download_API)
