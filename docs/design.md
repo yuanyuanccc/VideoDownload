@@ -1,0 +1,179 @@
+# 方案设计文档
+
+## 1. 系统架构
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              前端 (Vue 3 + Vite + Tailwind)              │
+│         深色主题 + 卡片布局 + 平台选择 + 清晰度选项       │
+└─────────────────────┬───────────────────────────────────┘
+                      │ HTTP API
+        ┌─────────────▼─────────────┐
+        │     FastAPI 后端 (Python)  │
+        │   /api/parse  解析视频信息  │
+        │   /api/download 下载视频    │
+        │   /api/stream 直链返回      │
+        └─────────────┬─────────────┘
+                      │
+        ┌─────────────┼─────────────┐
+        │             │             │
+   ┌────▼────┐  ┌────▼────┐  ┌────▼────┐
+   │ yt-dlp  │  │ 抖音专用 │  │ ffmpeg  │
+   │(主流平台)│  │ 解析模块 │  │ (合并)  │
+   └─────────┘  └─────────┘  └─────────┘
+```
+
+## 2. 技术栈
+
+| 层级 | 技术 | 说明 |
+|------|------|------|
+| 前端框架 | Vue 3 + Vite | 现代化前端框架，快速开发 |
+| 前端样式 | 内联样式 | 参考ai.codefather.cn深色主题 |
+| 后端框架 | FastAPI | 高性能Python Web框架 |
+| 核心依赖 | yt-dlp | 14w+ Star，支持1800+网站 |
+| 视频处理 | ffmpeg | 合并音视频流 |
+| 部署 | 轻量级 | 无数据库，直链返回 |
+
+## 3. API设计
+
+### 3.1 解析视频信息
+```
+POST /api/parse
+Request: { "url": "https://..." }
+Response: {
+    "code": 0,
+    "data": {
+        "title": "视频标题",
+        "thumbnail": "base64缩略图",
+        "duration": 32.67,
+        "uploader": "上传者",
+        "url": "原始URL",
+        "formats": [
+            {"format_id": "30080", "quality": "1920x1080", "ext": "mp4"},
+            ...
+        ]
+    }
+}
+```
+
+### 3.2 下载视频
+```
+POST /api/download
+Request: { "url": "...", "format_id": "30080" }
+Response: 视频文件流 (Content-Type: video/mp4)
+```
+
+### 3.3 获取直链
+```
+POST /api/stream
+Request: { "url": "...", "format_id": "30080" }
+Response: { "stream_url": "https://..." }
+```
+
+## 4. 前端页面设计
+
+### 4.1 风格参考
+参考 https://ai.codefather.cn/painting 的UI风格：
+- 深色主题（深蓝黑背景 #0f0f23）
+- 卡片网格布局
+- 青色强调色 (#00d4ff)
+- 简洁扁平化按钮
+
+### 4.2 页面结构
+```
+┌─────────────────────────────────────────┐
+│  导航栏 (Logo + 导航链接 + 登录/注册)     │
+├─────────────────────────────────────────┤
+│  Hero区域: 标题 + URL输入框 + 解析按钮    │
+├─────────────────────────────────────────┤
+│  视频信息区: 缩略图 + 标题 + 清晰度选择   │
+├─────────────────────────────────────────┤
+│  支持的平台展示 (紧凑标签式)             │
+├─────────────────────────────────────────┤
+│  VIP推广区域 (三种套餐对比)              │
+└─────────────────────────────────────────┘
+```
+
+## 5. 支持的平台
+
+| 平台 | 解析状态 | 下载状态 | 说明 |
+|------|----------|----------|------|
+| YouTube | ✅ | ✅ | yt-dlp原生支持 |
+| Bilibili | ✅ | ✅ | yt-dlp原生支持 |
+| 抖音 | 🔄 | 🔄 | Playwright方案尝试中 |
+| TikTok | 🔄 | 🔄 | Playwright方案尝试中 |
+| Twitter | ✅ | ✅ | yt-dlp支持 |
+| Instagram | ✅ | ⚠️ | 部分内容需要登录 |
+
+## 6. 清晰度排序逻辑
+
+```javascript
+// 前端按分辨率从高到低排序
+formats.sort((a, b) => {
+  const getRes = (q) => {
+    if (q.includes('1080')) return 1080
+    if (q.includes('720')) return 720
+    if (q.includes('480')) return 480
+    if (q.includes('360')) return 360
+    return 0
+  }
+  return getRes(b.quality) - getRes(a.quality)
+})
+```
+
+## 7. 下载流程
+
+1. 用户输入视频URL
+2. 后端自动识别平台（抖音/其他）
+3. 调用对应解析器获取视频信息
+4. 前端展示视频信息和清晰度选项
+5. 用户选择清晰度后点击下载
+6. 后端调用yt-dlp下载并合并音视频
+7. 流式返回给浏览器触发下载
+
+## 8. 开发阶段
+
+| 阶段 | 内容 | 状态 |
+|------|------|------|
+| 阶段1 | FastAPI后端 + yt-dlp封装 | ✅ 完成 |
+| 阶段2 | Vue3 + Vite + Tailwind 前端框架 | ✅ 完成 |
+| 阶段3 | 前后端联调 + UI精雕 | ✅ 完成 |
+| 阶段4 | 付费系统集成 | ⏳ 待开发 |
+| 阶段5 | 抖音专用解析模块 | 🔄 尝试中 |
+
+## 9. 项目文件结构
+
+```
+VideoDownload/
+├── backend/
+│   ├── app/
+│   │   ├── api/video.py      # API路由
+│   │   ├── services/
+│   │   │   ├── ytdlp_service.py  # yt-dlp封装
+│   │   │   └── douyin_service.py # 抖音专用模块
+│   │   └── main.py           # FastAPI入口
+│   ├── requirements.txt
+│   └── run.py                # 启动脚本
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Navbar.vue
+│   │   │   ├── HeroSection.vue
+│   │   │   ├── VideoInfo.vue
+│   │   │   ├── PlatformGrid.vue
+│   │   │   └── VipBanner.vue
+│   │   ├── App.vue
+│   │   └── main.js
+│   ├── index.html
+│   └── vite.config.js
+├── docs/
+│   ├── requirements.md       # 需求分析
+│   └── design.md             # 方案设计
+└── README.md
+```
+
+## 10. 部署方案
+
+- 服务器：Linux服务器
+- 依赖：Python 3.8+, Node.js 16+, ffmpeg
+- 进程管理：gunicorn (后端) + nginx (前端静态文件)
