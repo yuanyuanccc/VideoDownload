@@ -24,7 +24,7 @@
           <span class="loading-text">AI分析中...</span>
         </div>
         <div v-else class="summary-result">
-          <pre>{{ summaryContent }}</pre>
+          <div class="markdown-content" v-html="renderedSummary"></div>
         </div>
       </div>
 
@@ -41,15 +41,21 @@
           <p>{{ subtitleError }}</p>
           <button @click="loadSubtitles" class="generate-btn">重试</button>
         </div>
-        <div v-else class="subtitle-list">
-          <div v-for="(sub, i) in subtitles" :key="i" class="subtitle-item">
-            <span class="time">{{ sub.start }}</span>
-            <span class="text">{{ sub.text }}</span>
+        <div v-else class="subtitle-wrapper">
+          <div class="subtitle-toolbar">
+            <span class="subtitle-count">{{ subtitles.length }} 条字幕</span>
+            <button @click="downloadSubtitle" class="download-btn">下载SRT</button>
+          </div>
+          <div class="subtitle-list">
+            <div v-for="(sub, i) in subtitles" :key="i" class="subtitle-item">
+              <span class="time">{{ sub.start }}</span>
+              <span class="text">{{ sub.text }}</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- 思维导图 -->
+<!-- 思维导图 -->
       <div v-show="activeTab === 'mindmap'" class="mindmap-panel">
         <div v-if="!mindmapData && !loadingMindmap && summaryContent" class="empty-state">
           <p class="hint">基于AI总结生成思维导图</p>
@@ -59,25 +65,29 @@
           <span class="loading-text">生成思维导图中...</span>
         </div>
         <div v-else-if="mindmapData" class="mindmap-container">
-          <div class="mindmap-tree">
+          <div class="mindmap-toolbar">
+            <button @click="downloadMindmapImage" class="download-btn">下载图片</button>
+            <button @click="downloadMindmapJson" class="download-btn">下载JSON</button>
+          </div>
+          <div class="mindmap-display">
             <div class="mindmap-root">{{ mindmapData.root }}</div>
             <div class="mindmap-branches">
               <div v-for="(branch, i) in mindmapData.children" :key="i" class="branch">
-                <div class="branch-line"></div>
-                <div class="branch-content">
-                  <div class="branch-node">
-                    <span class="node-dot"></span>
-                    <span class="node-text">{{ branch.text }}</span>
-                  </div>
-                  <div v-if="branch.children && branch.children.length" class="sub-branches">
-                    <div v-for="(sub, j) in branch.children" :key="j" class="sub-branch">
-                      <div class="sub-line"></div>
-                      <div class="sub-node">
-                        <span class="sub-dot"></span>
-                        <span class="sub-text">{{ sub.text }}</span>
-                      </div>
-                    </div>
-                  </div>
+                <div class="branch-node">{{ branch.text }}</div>
+                <div v-if="branch.children && branch.children.length" class="sub-nodes">
+                  <div v-for="(sub, j) in branch.children" :key="j" class="sub-node">{{ sub.text }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div ref="exportArea" class="mindmap-export" style="position:absolute; left:-9999px; top:-9999px; background:#1a1a2e; padding:30px; width:900px;">
+            <div style="display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:20px;">
+              <div style="background:linear-gradient(135deg,#00d4ff,#7c3aed); color:#1a1a2e; padding:12px 24px; border-radius:25px; font-weight:bold; font-size:16px;">{{ mindmapData.root }}</div>
+              <div style="width:30px; height:2px; background:#4b5563;"></div>
+              <div v-for="(branch, i) in mindmapData.children" :key="i" style="display:flex; flex-direction:column; align-items:center; background:#fff; padding:10px 16px; border-radius:10px; border:2px solid #1a1a2e;">
+                <div style="color:#1a1a2e; font-weight:600; font-size:14px;">{{ branch.text }}</div>
+                <div v-if="branch.children && branch.children.length" style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; justify-content:center;">
+                  <div v-for="(sub, j) in branch.children" :key="j" style="background:#fef3c7; color:#1a1a2e; padding:4px 10px; border-radius:6px; border:1px solid #1a1a2e; font-size:12px;">{{ sub.text }}</div>
                 </div>
               </div>
             </div>
@@ -112,7 +122,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 const props = defineProps({
   videoUrl: { type: String, required: true }
@@ -137,6 +147,76 @@ const mindmapData = ref(null)
 const loadingChat = ref(false)
 const chatMessages = ref([])
 const chatInput = ref('')
+
+import html2canvas from 'html2canvas'
+
+const downloadMindmapImage = async () => {
+  if (!mindmapData.value) return
+  
+  const container = document.querySelector('.mindmap-display')
+  if (!container) {
+    alert('找不到导出区域')
+    return
+  }
+  
+  try {
+    const canvas = await html2canvas(container, {
+      backgroundColor: '#1a1a2e',
+      scale: 2,
+      useCORS: true,
+      logging: false
+    })
+    
+    const link = document.createElement('a')
+    link.download = 'mindmap.png'
+    link.href = canvas.toDataURL('image/png')
+    link.click()
+  } catch (err) {
+    console.error('html2canvas error:', err)
+    alert('生成图片失败: ' + err.message)
+  }
+}
+
+const downloadMindmapJson = () => {
+  if (!mindmapData.value) return
+  const blob = new Blob([JSON.stringify(mindmapData.value, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'mindmap.json'
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+watch(() => props.videoUrl, () => {
+  summaryContent.value = ''
+  subtitles.value = []
+  subtitleError.value = ''
+  mindmapData.value = null
+  chatMessages.value = []
+  chatInput.value = ''
+  aiUsed.value = false
+  activeTab.value = 'summary'
+})
+
+const renderMarkdown = (text) => {
+  if (!text) return ''
+  let html = text
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/^(\d+)\. (.+)$/gm, '<li class="ordered">$2</li>')
+  html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+  html = html.replace(/\n\n/g, '</p><p>')
+  html = html.replace(/\n/g, '<br>')
+  return `<p>${html}</p>`
+}
+
+const renderedSummary = computed(() => renderMarkdown(summaryContent.value))
 
 const generateSummary = async () => {
   loadingSummary.value = true
@@ -221,17 +301,62 @@ const generateMindmap = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ summary: summaryContent.value })
     })
+    console.log('Mindmap response status:', res.status)
     const data = await res.json()
+    console.log('Mindmap response data:', data)
     if (data.code === 0) {
       mindmapData.value = data.data
     } else {
       alert(data.message || '生成思维导图失败')
     }
   } catch (err) {
-    alert('生成思维导图失败')
+    console.error('Mindmap error:', err)
+    alert('生成思维导图失败: ' + err.message)
   } finally {
     loadingMindmap.value = false
   }
+}
+
+const formatTimestamp = (timeStr) => {
+  const parts = timeStr.split(':')
+  if (parts.length === 3) {
+    return timeStr
+  } else if (parts.length === 2) {
+    return `00:${parts[0]}:${parts[1]}`
+  }
+  return timeStr
+}
+
+const toSrtTime = (timeStr) => {
+  let t = timeStr.replace('.', ',')
+  const parts = t.split(':')
+  if (parts.length === 2) {
+    return `00:${parts[0]}:${parts[1]}`
+  } else if (parts.length === 1) {
+    return `00:00:${parts[0]},000`
+  }
+  return t
+}
+
+const downloadSubtitle = () => {
+  if (!subtitles.value.length) return
+  
+  let srtContent = ''
+  subtitles.value.forEach((sub, index) => {
+    srtContent += `${index + 1}\n`
+    srtContent += `${toSrtTime(sub.start)} --> ${toSrtTime(sub.end)}\n`
+    srtContent += `${sub.text}\n\n`
+  })
+  
+  const blob = new Blob([srtContent], { type: 'text/plain;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'subtitle.srt'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }
 
 const sendChat = async () => {
@@ -390,6 +515,95 @@ const sendChat = async () => {
   font-family: inherit;
 }
 
+.markdown-content {
+  line-height: 1.8;
+  color: #e5e7eb;
+}
+
+.markdown-content h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #00d4ff;
+  margin: 1rem 0 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #2a2a4a;
+}
+
+.markdown-content h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #00d4ff;
+  margin: 1rem 0 0.5rem;
+}
+
+.markdown-content h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #7c3aed;
+  margin: 0.75rem 0 0.5rem;
+}
+
+.markdown-content strong {
+  color: #7c3aed;
+  font-weight: 600;
+}
+
+.markdown-content code {
+  background: #2a2a4a;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  color: #00d4ff;
+}
+
+.markdown-content ul {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.markdown-content li {
+  margin: 0.25rem 0;
+  list-style-type: disc;
+}
+
+.markdown-content p {
+  margin: 0.5rem 0;
+}
+
+.subtitle-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.subtitle-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #2a2a4a;
+}
+
+.subtitle-count {
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.download-btn {
+  padding: 0.5rem 1rem;
+  background: #10b981;
+  color: white;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.download-btn:hover {
+  background: #059669;
+}
+
 .subtitle-list {
   max-height: 400px;
   overflow-y: auto;
@@ -417,112 +631,76 @@ const sendChat = async () => {
 }
 
 .mindmap-container {
-  max-height: 400px;
-  overflow-y: auto;
+  min-height: 300px;
+  overflow: auto;
+  padding: 0.5rem;
 }
 
-.mindmap-tree {
+.mindmap-toolbar {
   display: flex;
-  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.mindmap-display {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  min-height: 150px;
 }
 
 .mindmap-root {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: bold;
-  color: #00d4ff;
-  padding: 0.75rem 1rem;
-  background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(0, 212, 255, 0.05));
-  border-radius: 8px;
-  border-left: 3px solid #00d4ff;
-  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #00d4ff, #7c3aed);
+  color: #1a1a2e;
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  white-space: nowrap;
 }
 
 .mindmap-branches {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
 }
 
 .branch {
   display: flex;
-  align-items: flex-start;
-}
-
-.branch-line {
-  width: 24px;
-  height: 20px;
-  border-left: 2px solid #4b5563;
-  border-bottom: 2px solid #4b5563;
-  border-bottom-left-radius: 8px;
-  margin-right: 0.5rem;
-  flex-shrink: 0;
-}
-
-.branch-content {
-  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  background: #fff;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 2px solid #1a1a2e;
 }
 
 .branch-node {
+  color: #1a1a2e;
+  font-weight: 600;
+  text-align: center;
+}
+
+.sub-nodes {
   display: flex;
-  align-items: center;
-  padding: 0.5rem 0.75rem;
-  background: rgba(75, 85, 99, 0.3);
-  border-radius: 6px;
-  margin-bottom: 0.5rem;
-}
-
-.node-dot {
-  width: 8px;
-  height: 8px;
-  background: #10b981;
-  border-radius: 50%;
-  margin-right: 0.5rem;
-  flex-shrink: 0;
-}
-
-.node-text {
-  color: #e5e7eb;
-  font-weight: 500;
-}
-
-.sub-branches {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  margin-left: 1rem;
-}
-
-.sub-branch {
-  display: flex;
-  align-items: center;
-}
-
-.sub-line {
-  width: 16px;
-  height: 16px;
-  border-left: 1px solid #6b7280;
-  margin-right: 0.5rem;
-  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  justify-content: center;
 }
 
 .sub-node {
-  display: flex;
-  align-items: center;
-  padding: 0.25rem 0.5rem;
-}
-
-.sub-dot {
-  width: 5px;
-  height: 5px;
-  background: #9ca3af;
-  border-radius: 50%;
-  margin-right: 0.5rem;
-  flex-shrink: 0;
-}
-
-.sub-text {
-  color: #9ca3af;
-  font-size: 0.9rem;
+  background: #fef3c7;
+  color: #1a1a2e;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #1a1a2e;
+  font-size: 0.8rem;
 }
 
 .chat-panel {

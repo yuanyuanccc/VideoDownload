@@ -228,15 +228,8 @@ class AIService:
             return {"success": False, "error": "未配置DeepSeek API Key"}
 
         system_prompt = """你是一个思维导图生成助手。请根据视频总结内容，生成思维导图JSON结构。
-JSON格式要求：
-{
-  "root": "根节点标题",
-  "children": [
-    {"text": "分支1", "children": [{"text": "子节点1"}, {"text": "子节点2"}]},
-    {"text": "分支2", "children": [...]}
-  ]
-}
-请返回纯JSON，不要其他内容。"""
+请返回纯JSON格式，不要任何其他文字。JSON格式：
+{"root": "标题", "children": [{"text": "分支1", "children": [{"text": "子节点1"}]}]}"""
 
         try:
             response = requests.post(
@@ -246,17 +239,20 @@ JSON格式要求：
                     "model": self.model,
                     "messages": [
                         {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": f"视频总结：\n{summary}\n\n请生成思维导图结构："}
+                        {"role": "user", "content": f"视频总结：\n{summary[:2000]}\n\n请生成思维导图JSON："}
                     ],
                     "temperature": 0.5,
-                    "max_tokens": 500
+                    "max_tokens": 600
                 },
-                timeout=30
+                timeout=60
             )
 
+            logger.info(f"Mindmap API response status: {response.status_code}")
+            
             if response.status_code == 200:
                 result = response.json()
                 content = result.get('choices', [{}])[0].get('message', {}).get('content', '')
+                logger.info(f"Mindmap raw response: {content[:200]}")
                 
                 try:
                     mindmap_data = json.loads(content)
@@ -266,10 +262,13 @@ JSON格式要求：
                     json_match = re.search(r'\{[\s\S]*\}', content)
                     if json_match:
                         mindmap_data = json.loads(json_match.group())
+                        logger.info(f"Mindmap parsed: {mindmap_data}")
                         return {"success": True, "data": mindmap_data}
-                    return {"success": False, "error": "无法解析思维导图数据"}
+                    return {"success": False, "error": f"无法解析JSON: {content[:100]}"}
             else:
-                return {"success": False, "error": f"API调用失败: {response.status_code}"}
+                error_msg = f"API错误 {response.status_code}: {response.text[:200]}"
+                logger.error(error_msg)
+                return {"success": False, "error": error_msg}
 
         except Exception as e:
             logger.error(f"AI mindmap error: {e}")
