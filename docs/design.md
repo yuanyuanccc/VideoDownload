@@ -158,6 +158,7 @@ formats.sort((a, b) => {
 | 阶段3 | 前后端联调 + UI精雕 | ✅ 完成 |
 | 阶段4 | 付费系统集成 | ⏳ 待开发 |
 | 阶段5 | 抖音专用解析模块 | ✅ 完成 |
+| 阶段6 | AI 视频智能功能 | ✅ 完成 |
 
 ## 9. 项目文件结构
 
@@ -165,19 +166,25 @@ formats.sort((a, b) => {
 VideoDownload/
 ├── backend/
 │   ├── app/
-│   │   ├── api/video.py      # API路由
+│   │   ├── api/
+│   │   │   ├── video.py      # 视频解析 API
+│   │   │   └── ai.py         # AI 功能 API
 │   │   ├── services/
-│   │   │   ├── ytdlp_service.py  # yt-dlp封装
-│   │   │   └── douyin_service.py # 抖音专用模块
-│   │   └── main.py           # FastAPI入口
+│   │   │   ├── ytdlp_service.py    # yt-dlp封装
+│   │   │   ├── douyin_service.py   # 抖音专用模块
+│   │   │   ├── subtitle_service.py # 字幕提取服务
+│   │   │   └── ai_service.py       # AI 服务
+│   │   ├── config.py        # 配置管理
+│   │   └── main.py          # FastAPI入口
 │   ├── requirements.txt
-│   └── run.py                # 启动脚本
+│   └── run.py
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── Navbar.vue
 │   │   │   ├── HeroSection.vue
 │   │   │   ├── VideoInfo.vue
+│   │   │   ├── VideoSummary.vue  # AI 功能组件
 │   │   │   ├── PlatformGrid.vue
 │   │   │   └── VipBanner.vue
 │   │   ├── App.vue
@@ -186,11 +193,45 @@ VideoDownload/
 │   └── vite.config.js
 ├── docs/
 │   ├── requirements.md       # 需求分析
-│   └── design.md             # 方案设计
+│   ├── design.md            # 方案设计
+│   └── ai-features.md       # AI 功能文档
 └── README.md
 ```
 
-## 10. 部署方案
+## 10. AI 视频智能功能
+
+### 10.1 功能列表
+
+| 功能 | 优先级 | 说明 |
+|------|--------|------|
+| AI 视频总结 | P0 | 流式生成结构化视频总结 (DeepSeek) |
+| 字幕提取 | P0 | 提取视频字幕内容 (yt-dlp) |
+| 思维导图 | P1 | 基于总结生成思维导图 |
+| AI 问答 | P2 | 基于视频内容进行问答 |
+
+### 10.2 技术特点
+
+- **流式输出**: 使用 SSE (Server-Sent Events) 实现实时流式输出
+- **API 安全**: API Key 存储在环境变量，不暴露在代码中
+- **字幕依赖**: YouTube 有原生字幕，B站需要登录
+
+### 10.3 AI API 端点
+
+```
+POST /api/ai/subtitle         # 字幕提取
+POST /api/ai/summary/stream   # AI总结 (SSE流式)
+POST /api/ai/chat/stream      # AI问答 (SSE流式)
+POST /api/ai/mindmap          # 思维导图
+```
+
+### 10.4 配置
+
+```bash
+# .env 文件
+DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxx
+```
+
+## 11. 部署方案
 
 - 服务器：Linux服务器
 - 依赖：Python 3.8+, Node.js 16+, ffmpeg

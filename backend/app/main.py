@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import video
+from app.api import ai
 
 app = FastAPI(title="Video Downloader API", version="1.0.0")
 
@@ -13,6 +14,7 @@ app.add_middleware(
 )
 
 app.include_router(video.router, prefix="/api", tags=["video"])
+app.include_router(ai.router, prefix="/api/ai", tags=["ai"])
 
 @app.get("/health")
 def health_check():

@@ -7,3 +7,4 @@ aiofiles==23.2.1
 playwright==1.48.0
 requests==2.31.0
 urllib3==2.0.0
+faster-whisper==1.2.1

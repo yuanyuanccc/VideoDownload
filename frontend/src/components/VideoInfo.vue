@@ -66,14 +66,36 @@
           >
             {{ downloading ? '下载中...' : '立即下载' }}
           </button>
+
+          <button
+            @click="showSummary = true"
+            :style="{
+              marginTop: '1rem', 
+              marginLeft: '0.75rem',
+              padding: '0.75rem 1.5rem', 
+              background: 'transparent', 
+              color: '#00d4ff', 
+              fontWeight: '600', 
+              borderRadius: '0.5rem', 
+              border: '1px solid #00d4ff', 
+              cursor: 'pointer',
+              display: 'inline-block'
+            }"
+          >
+            AI智能分析
+          </button>
         </div>
       </div>
+
+      <VideoSummary v-if="showSummary" :video-url="videoInfo.url" @close="showSummary = false" />
     </div>
   </section>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
+import axios from 'axios'
+import VideoSummary from './VideoSummary.vue'
 
 const props = defineProps({
   videoInfo: {
@@ -88,6 +110,18 @@ const props = defineProps({
 
 const emit = defineEmits(['download'])
 const selectedFormat = ref(null)
+const showSummary = ref(false)
+
+const aiUsed = ref(false)
+const loadingSummary = ref(false)
+const summaryData = ref('')
+const loadingSubtitle = ref(false)
+const subtitles = ref([])
+const loadingMindmap = ref(false)
+const mindmapData = ref(null)
+const loadingChat = ref(false)
+const chatMessages = ref([])
+const chatInput = ref('')
 
 const filteredFormats = computed(() => {
   const formats = props.videoInfo.formats?.filter(f => f.quality && f.quality !== 'unknown' && f.quality !== 'audio only') || []
@@ -117,5 +151,108 @@ const handleDownload = () => {
     url: props.videoInfo.url,
     format: selectedFormat.value
   })
+}
+
+const generateSummary = async () => {
+  loadingSummary.value = true
+  summaryData.value = ''
+  
+  try {
+    const response = await fetch('/api/summarize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: props.videoInfo.url })
+    })
+
+    if (!response.ok) {
+      alert('请求失败: ' + response.status)
+      loadingSummary.value = false
+      return
+    }
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let fullContent = ''
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      
+      const text = decoder.decode(value)
+      const lines = text.split('\n')
+      
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6)
+          if (data === '[DONE]') continue
+          
+          try {
+            const parsed = JSON.parse(data)
+            if (parsed.choices && parsed.choices[0].delta && parsed.choices[0].delta.content) {
+              fullContent += parsed.choices[0].delta.content
+              summaryData.value = fullContent
+            }
+            if (parsed.error) {
+              alert(parsed.error)
+              loadingSummary.value = false
+              return
+            }
+          } catch {}
+        }
+      }
+    }
+    
+    if (summaryData.value) {
+      aiUsed.value = true
+    } else {
+      alert('未能获取到总结内容，请检查视频是否有字幕')
+    }
+  } catch (err) {
+    alert('生成总结失败: ' + err.message)
+  } finally {
+    loadingSummary.value = false
+  }
+}
+
+const loadSubtitles = async () => {
+  loadingSubtitle.value = true
+  try {
+    const res = await fetch('/api/subtitle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: props.videoInfo.url })
+    })
+    const data = await res.json()
+    if (data.code === 0) {
+      subtitles.value = data.data.subtitles || []
+    } else {
+      alert(data.message || '加载字幕失败')
+    }
+  } catch (err) {
+    alert('加载字幕失败')
+  } finally {
+    loadingSubtitle.value = false
+  }
+}
+
+const generateMindmap = async () => {
+  loadingMindmap.value = true
+  try {
+    const res = await fetch('/api/mindmap', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ summary: summaryData.value })
+    })
+    const data = await res.json()
+    if (data.code === 0) {
+      mindmapData.value = data.data
+    } else {
+      alert(data.message || '生成思维导图失败')
+    }
+  } catch (err) {
+    alert('生成思维导图失败')
+  } finally {
+    loadingMindmap.value = false
+  }
 }
 </script>

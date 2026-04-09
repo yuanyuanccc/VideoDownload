@@ -32,3 +32,4 @@ downloads/
 *.mp3
 *.jpg
 *.png
+.env

@@ -111,6 +111,81 @@ class YtDlpService:
         
         return None
 
+    def _parse_bilibili_by_api(self, url: str) -> Optional[VideoInfo]:
+        """通过B站API解析视频"""
+        try:
+            import re
+            bv_id_match = re.search(r'BV[\w]+', url)
+            if not bv_id_match:
+                return None
+            bv_id = bv_id_match.group()
+            
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Referer': 'https://www.bilibili.com/',
+            }
+            
+            api_url = f"https://api.bilibili.com/x/web-interface/view?bvid={bv_id}"
+            response = requests.get(api_url, headers=headers, timeout=15)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('code') == 0 and data.get('data'):
+                    video_data = data['data']
+                    
+                    title = video_data.get('title', 'B站视频')
+                    pic = video_data.get('pic', '')
+                    duration = video_data.get('duration', 0)
+                    owner = video_data.get('owner', {})
+                    uploader = owner.get('name', '')
+                    
+                    # 修复缩略图URL
+                    if pic:
+                        if pic.startswith('//'):
+                            pic = 'https:' + pic
+                        elif not pic.startswith('http'):
+                            pic = 'https://' + pic
+                        thumbnail = self._download_thumbnail(pic)
+                    else:
+                        thumbnail = None
+                    
+                    return VideoInfo(
+                        title=title[:100],
+                        thumbnail=thumbnail,
+                        duration=duration,
+                        description=video_data.get('desc', ''),
+                        uploader=uploader,
+                        formats=[
+                            VideoFormat(
+                                format_id='bilibili_dash',
+                                quality='1080P',
+                                ext='mp4',
+                                filesize_approx=None,
+                                resolution='1920x1080'
+                            ),
+                            VideoFormat(
+                                format_id='bilibili_dash_720',
+                                quality='720P',
+                                ext='mp4',
+                                filesize_approx=None,
+                                resolution='1280x720'
+                            ),
+                            VideoFormat(
+                                format_id='bilibili_dash_480',
+                                quality='480P',
+                                ext='mp4',
+                                filesize_approx=None,
+                                resolution='854x480'
+                            ),
+                        ],
+                        url=url,
+                        _video_url=f"https://www.bilibili.com/video/{bv_id}/"
+                    )
+        except Exception as e:
+            logger.error(f"B站API解析失败: {e}")
+        
+        return None
+
     def parse_video(self, url: str) -> VideoInfo:
         """解析视频信息"""
         logger.info(f"Parsing video: {url}")
@@ -139,6 +214,12 @@ class YtDlpService:
                     )
             except Exception as e:
                 logger.warning(f"Douyin parse failed: {e}")
+        
+        # B站视频尝试使用API
+        if 'bilibili.com' in url:
+            bili_result = self._parse_bilibili_by_api(url)
+            if bili_result:
+                return bili_result
         
         opts = {**self.base_opts, 'dump_single_json': True}
         

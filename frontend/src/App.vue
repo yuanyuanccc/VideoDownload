@@ -3,7 +3,12 @@
     <Navbar />
     <main style="max-width: 80rem; margin: 0 auto; padding: 0 1rem;">
       <HeroSection @parsed="handleVideoParsed" />
-      <VideoInfo v-if="videoInfo" :video-info="videoInfo" @download="handleDownload" :downloading="downloading" />
+      <VideoInfo 
+        v-if="videoInfo" 
+        :video-info="videoInfo" 
+        @download="handleDownload" 
+        :downloading="downloading" 
+      />
       <PlatformGrid />
       <VipBanner />
     </main>
