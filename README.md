@@ -1,23 +1,29 @@
-# Video Downloader
+# VideoGrab 万能视频下载器
 
-支持多平台的视频下载工具 + AI 智能分析功能
+一个支持多平台的视频下载工具，还能用 AI 分析视频内容。
 
-## 功能特性
+## 支持的平台
 
-### 视频下载
-- 支持 YouTube、B站、抖音等主流平台
-- 多种清晰度可选
-- 直链返回，服务器不存储
+YouTube、B站、抖音、TikTok、Twitter、微博、快手、小红书等 1800+ 网站。
 
-### AI 智能分析
-- AI 视频总结（DeepSeek）
-- 字幕提取
-- 思维导图生成
-- AI 问答互动
+## 功能
 
-## 快速开始
+- 视频下载，多种清晰度可选
+- AI 自动总结视频内容
+- 提取字幕
+- 生成思维导图
+- 跟视频对话，问任何问题
 
-### 安装依赖
+## 怎么用
+
+### 1. 克隆项目
+
+```bash
+git clone https://github.com/yuanyuanccc/VideoDownload.git
+cd VideoDownload
+```
+
+### 2. 安装依赖
 
 ```bash
 # 后端
@@ -25,54 +31,50 @@ cd backend
 pip install -r requirements.txt
 
 # 前端
-cd frontend
+cd ../frontend
 npm install
 ```
 
-### 配置
+### 3. 配置
 
-在 `backend/.env` 中配置：
+在 `backend/.env` 里加上你的 DeepSeek API Key：
 
-```bash
-# DeepSeek API (用于AI功能)
-DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxx
-
-# B站登录Cookie (可选，用于获取会员字幕)
-BILIBILI_SESSDATA=your_sessdata
+```
+DEEPSEEK_API_KEY=sk-xxx
 ```
 
-### 运行
+### 4. 启动
 
 ```bash
-# 后端
+# 后端 (端口 8000)
 cd backend
 python run.py
 
-# 前端
+# 前端 (端口 5173)
 cd frontend
 npm run dev
 ```
 
-## API 文档
+然后浏览器打开 http://localhost:5173
 
-### 视频解析
-- `POST /api/parse` - 解析视频信息
-- `POST /api/stream` - 获取视频直链
-- `POST /api/download` - 下载视频
+## 技术
 
-### AI 功能
-- `POST /api/ai/subtitle` - 字幕提取
-- `POST /api/ai/summary/stream` - AI总结(流式)
-- `POST /api/ai/chat/stream` - AI问答(流式)
-- `POST /api/ai/mindmap` - 思维导图
+- 前端：Vue 3 + Vite + Tailwind
+- 后端：FastAPI + Python
+- 视频处理：yt-dlp
+- AI：DeepSeek
 
-详细文档见 [docs/](docs/) 目录
+## 接口
 
-## 技术栈
-
-| 层级 | 技术 |
+| 接口 | 说明 |
 |------|------|
-| 前端 | Vue 3 + Vite + Tailwind |
-| 后端 | FastAPI + Python |
-| 核心 | yt-dlp (1800+网站支持) |
-| AI | DeepSeek API |
+| POST /api/parse | 解析视频 |
+| POST /api/download | 下载视频 |
+| POST /api/ai/summary | AI 总结 |
+| POST /api/ai/subtitle | 提取字幕 |
+| POST /api/ai/mindmap | 生成思维导图 |
+| POST /api/ai/chat | 问答 |
+
+##LICENSE
+
+MIT

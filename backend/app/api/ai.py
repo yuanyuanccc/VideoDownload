@@ -157,7 +157,7 @@ async def chat_with_video_stream(request: ChatRequest):
         subtitle_text = subtitle_service.get_subtitle_text(
             sub_result.get("subtitles", []),
             8000,
-            sub_result.get("fallback_text", "")  # 无字幕时使用视频描述
+            sub_result.get("fallback_text", "")
         )
         
         if not subtitle_text:
@@ -196,7 +196,7 @@ async def chat_with_video(request: ChatRequest):
         subtitle_text = subtitle_service.get_subtitle_text(
             sub_result.get("subtitles", []),
             8000,
-            sub_result.get("fallback_text", "")  # 无字幕时使用视频描述
+            sub_result.get("fallback_text", "")
         )
         
         if not subtitle_text:

@@ -277,6 +277,36 @@ class YtDlpService:
             info = self.parse_video(url)
             return getattr(info, '_video_url', '')
         
+        # B站dash格式 - 使用yt-dlp获取真实下载链接
+        if 'bilibili' in url and 'bilibili_dash' in format_id:
+            quality_map = {
+                'bilibili_dash': '1080',
+                'bilibili_dash_720': '720',
+                'bilibili_dash_480': '480',
+            }
+            quality = quality_map.get(format_id, '1080')
+            
+            opts = {
+                **self.base_opts,
+                'format': f'bestvideo[height<={quality}]+bestaudio/best',
+                'allow_unplayable_formats': True,
+            }
+            
+            try:
+                with yt_dlp.YoutubeDL(opts) as ydl:
+                    info = ydl.extract_info(url, download=False)
+                    if info and info.get('formats'):
+                        # 找最佳格式
+                        best = info['formats'][-1]
+                        for f in info['formats']:
+                            if f.get('height') and f.get('height') <= int(quality):
+                                if f.get('url'):
+                                    best = f
+                                    break
+                        return best.get('url', '')
+            except Exception as e:
+                logger.error(f"B站直链获取失败: {e}")
+        
         opts = {
             **self.base_opts,
             'format': format_id,
@@ -306,6 +336,35 @@ class YtDlpService:
                         if chunk:
                             f.write(chunk)
                 return output_file
+        
+        # B站dash格式 - 使用特殊处理
+        if 'bilibili' in url and 'bilibili_dash' in format_id:
+            quality_map = {
+                'bilibili_dash': '1080',
+                'bilibili_dash_720': '720',
+                'bilibili_dash_480': '480',
+            }
+            quality = quality_map.get(format_id, '1080')
+            
+            safe_title = f"video_{int(os.times().system * 1000)}"
+            opts = {
+                **self.base_opts,
+                'format': f'bestvideo[height<={quality}]+bestaudio/best',
+                'outtmpl': os.path.join(output_path, f'{safe_title}.%(ext)s'),
+                'merge_output_format': 'mp4',
+                'progress_hooks': [self._progress_hook],
+            }
+            
+            with yt_dlp.YoutubeDL(opts) as ydl:
+                info = ydl.extract_info(url, download=True)
+                filename = ydl.prepare_filename(info)
+                
+                if not filename.endswith('.mp4'):
+                    for f in os.listdir(output_path):
+                        if f.endswith('.mp4'):
+                            filename = os.path.join(output_path, f)
+                            break
+                return filename
         
         safe_title = f"video_{int(os.times().system * 1000)}"
         
@@ -344,6 +403,7 @@ class YtDlpService:
         
         safe_title = f"video_{int(time.time() * 1000)}"
         
+        # 抖音直接下载
         if 'douyin' in format_id:
             try:
                 info = self.parse_video(url)
@@ -365,14 +425,32 @@ class YtDlpService:
                 result['error'] = str(e)
                 return result
         
-        opts = {
-            **self.base_opts,
-            'format': f'{format_id}+bestaudio',
-            'outtmpl': os.path.join(output_path, f'{safe_title}.%(ext)s'),
-            'merge_output_format': 'mp4',
-            'progress_hooks': [self._progress_hook],
-            'timeout': 300,
-        }
+        # B站dash格式
+        if 'bilibili' in url and 'bilibili_dash' in format_id:
+            quality_map = {
+                'bilibili_dash': '1080',
+                'bilibili_dash_720': '720',
+                'bilibili_dash_480': '480',
+            }
+            quality = quality_map.get(format_id, '1080')
+            
+            opts = {
+                **self.base_opts,
+                'format': f'bestvideo[height<={quality}]+bestaudio/best',
+                'outtmpl': os.path.join(output_path, f'{safe_title}.%(ext)s'),
+                'merge_output_format': 'mp4',
+                'progress_hooks': [self._progress_hook],
+                'timeout': 300,
+            }
+        else:
+            opts = {
+                **self.base_opts,
+                'format': f'{format_id}+bestaudio',
+                'outtmpl': os.path.join(output_path, f'{safe_title}.%(ext)s'),
+                'merge_output_format': 'mp4',
+                'progress_hooks': [self._progress_hook],
+                'timeout': 300,
+            }
         
         def download_thread():
             try:

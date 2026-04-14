@@ -1,11 +1,12 @@
 <template>
-  <section style="padding: 2rem 0;">
-    <h2 style="font-size: 1rem; font-weight: 600; text-align: center; margin-bottom: 1rem; color: #9ca3af;">支持的平台</h2>
-    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; max-width: 48rem; margin: 0 auto;">
+  <section style="padding: 1rem 0 1.5rem;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; max-width: 36rem; margin: 0 auto;">
       <div
         v-for="platform in platforms"
         :key="platform.name"
-        style="padding: 0.375rem 0.75rem; background: #1a1a2e; border-radius: 0.5rem; border: 1px solid #2a2a4a; display: flex; align-items: center; gap: 0.375rem; font-size: 0.875rem; color: #e5e7eb;"
+        style="padding: 0.4rem 0.75rem; background: rgba(30,30,63,0.6); border-radius: 0.5rem; border: 1px solid rgba(58,58,92,0.5); display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: #d1d5db; transition: all 0.2s; cursor: default;"
+        onmouseover="this.style.borderColor='rgba(0,212,255,0.4)';this.style.background='rgba(0,212,255,0.1)'"
+        onmouseout="this.style.borderColor='rgba(58,58,92,0.5)';this.style.background='rgba(30,30,63,0.6)'"
       >
         <span>{{ platform.icon }}</span>
         <span>{{ platform.name }}</span>

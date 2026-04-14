@@ -1,0 +1,35 @@
+# VideoGrab Robots.txt
+# https://videograb.cc/
+
+User-agent: *
+Allow: /
+
+# AI Crawlers - Allow all for AI citation
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Disallow paths that shouldn't be indexed
+Disallow: /api/
+Disallow: /assets/
+Disallow: /#/
+
+# Sitemap
+Sitemap: https://videograb.cc/sitemap.xml

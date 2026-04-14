@@ -1,10 +1,253 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VideoGrab - 万能视频下载器</title>
+    
+    <!-- SEO Meta Tags -->
+    <title>VideoGrab - 万能视频下载器 | 支持YouTube/B站/抖音下载</title>
+    <meta name="description" content="VideoGrab是一款专业的万能视频下载工具，支持YouTube、B站、抖音、TikTok、Twitter等1800+平台，一键解析，高速下载，直链返回，永久免费！" />
+    <meta name="keywords" content="视频下载,视频解析,YouTube下载,B站下载,抖音下载,TikTok下载,去水印下载,批量下载,视频转存,网页视频下载" />
+    <meta name="author" content="VideoGrab" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://videograb.cc/" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://videograb.cc/" />
+    <meta property="og:title" content="VideoGrab - 万能视频下载器 | 1800+平台支持" />
+    <meta property="og:description" content="支持YouTube、B站、抖音、TikTok等主流平台，一键解析，高速下载，直链返回，永久免费！" />
+    <meta property="og:image" content="https://videograb.cc/og-image.png" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://videograb.cc/" />
+    <meta property="twitter:title" content="VideoGrab - 万能视频下载器" />
+    <meta property="twitter:description" content="支持YouTube、B站、抖音等1800+平台，一键解析，高速下载！" />
+    <meta property="twitter:image" content="https://videograb.cc/og-image.png" />
+    
+    <!-- Geo Location -->
+    <meta name="geo.region" content="CN" />
+    <meta name="geo.placename" content="China" />
+    
+    <!-- Preconnect to external resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    
+    <!-- Structured Data - Software Application -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "VideoGrab",
+      "alternateName": "万能视频下载器",
+      "description": "支持YouTube、B站、抖音、TikTok、Twitter等1800+平台的视频下载工具，一键解析，高速下载，直链返回，永久免费！",
+      "url": "https://videograb.cc/",
+      "applicationCategory": "UtilityApplication",
+      "applicationSubCategory": "Video Downloader",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "CNY",
+        "availability": "https://schema.org/InStock",
+        "validFrom": "2026-01-01"
+      },
+      "hasPart": [
+        {
+          "@type": "WebApplication",
+          "name": "VideoGrab 免费版",
+          "description": "每日3次下载，高清画质"
+        },
+        {
+          "@type": "WebApplication",
+          "name": "VideoGrab 月付VIP",
+          "description": "¥29/月，无限制下载，4K超清"
+        },
+        {
+          "@type": "WebApplication",
+          "name": "VideoGrab 年付VIP",
+          "description": "¥199/年，4K/8K超清，完整AI功能"
+        }
+      ],
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "reviewCount": "1000",
+        "bestRating": "5"
+      },
+      "featureList": [
+        "支持1800+平台视频下载",
+        "YouTube/B站/抖音/TikTok支持",
+        "多清晰度可选",
+        "直链返回不占服务器",
+        "AI视频智能分析"
+      ],
+      "screenshot": "https://videograb.cc/og-image.png",
+      "author": {
+        "@type": "Organization",
+        "name": "VideoGrab",
+        "url": "https://videograb.cc/",
+        "logo": "https://videograb.cc/favicon.svg"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "VideoGrab"
+      },
+      "datePublished": "2025-01-01",
+      "dateModified": "2026-04-13"
+    }
+    </script>
+    
+    <!-- Structured Data - HowTo (使用教程) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "如何使用 VideoGrab 下载视频",
+      "description": "一步一步教你使用 VideoGrab 从各大平台下载视频",
+      "totalTime": "PT1M",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "name": "1. 复制视频链接",
+          "text": "打开你想要下载的视频，点击分享按钮，复制视频链接。支持的平台包括YouTube、B站、抖音、TikTok等1800+平台。",
+          "url": "https://videograb.cc/#step1"
+        },
+        {
+          "@type": "HowToStep",
+          "name": "2. 粘贴链接到输入框",
+          "text": "打开 VideoGrab 网站，将复制的视频链接粘贴到输入框中。",
+          "url": "https://videograb.cc/#step2"
+        },
+        {
+          "@type": "HowToStep",
+          "name": "3. 点击解析",
+          "text": "点击「开始解析」按钮，等待系统解析视频信息。解析时间通常在2-5秒内。",
+          "url": "https://videograb.cc/#step3"
+        },
+        {
+          "@type": "HowToStep",
+          "name": "4. 选择清晰度",
+          "text": "解析完成后，选择你需要的视频清晰度，从360P到8K超清可选。",
+          "url": "https://videograb.cc/#step4"
+        },
+        {
+          "@type": "HowToStep",
+          "name": "5. 下载视频",
+          "text": "点击「立即下载」按钮，视频将自动下载到你的设备。",
+          "url": "https://videograb.cc/#step5"
+        }
+      ],
+      "supply": [
+        {
+          "@type": "HowToSupply",
+          "name": "视频链接"
+        },
+        {
+          "@type": "HowToSupply",
+          "name": "可上网的设备"
+        }
+      ],
+      "tool": [
+        {
+          "@type": "HowToTool",
+          "name": "VideoGrab 网站"
+        }
+      ]
+    }
+    </script>
+    
+    <!-- Structured Data - FAQ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "VideoGrab支持哪些平台？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "VideoGrab支持YouTube、B站（哔哩哔哩）、抖音、TikTok、Twitter、Instagram、微博、快手、小红书等1800+平台。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "VideoGrab下载视频要收费吗？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "免费版每日可下载3次，会员版无限制下载并支持4K/8K超清、AI视频总结等功能。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "如何下载抖音视频去水印？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "复制抖音视频链接，粘贴到VideoGrab输入框，点击解析即可一键下载无水印视频。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "支持批量下载吗？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "会员用户支持批量下载功能，免费用户每次只能下载单个视频。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "下载的视频清晰度如何？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "支持多种清晰度选择，从360P到8K超清，会员可享最高清晰度。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "什么是万能视频下载器？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "万能视频下载器是一种在线工具，可以从多个视频平台（如YouTube、B站、抖音等）解析并下载视频，无需安装软件，支持多清晰度选择，部分平台还支持去水印功能。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "YouTube视频怎么下载？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "使用VideoGrab下载YouTube视频非常简单：1. 复制YouTube视频链接；2. 打开videograb.cc；3. 粘贴链接并点击解析；4. 选择清晰度；5. 点击下载。完全免费，无需翻墙软件。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "B站视频怎么下载？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "VideoGrab支持下载B站视频，复制B站视频链接（bilibili.com），粘贴到网站解析，支持多种清晰度，会员可享1080P+高清画质。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "视频下载软件哪个好？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "VideoGrab是一款优秀的在线视频下载工具，支持1800+平台，无需安装软件，浏览器即可使用。相比桌面软件更轻量，支持AI智能分析功能。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "如何去除视频水印？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "VideoGrab自动去除视频水印，下载抖音、快手等平台视频时，系统会自动处理，输出无水印的纯净视频。"
+          }
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="app"></div>

@@ -22,5 +22,18 @@ export default defineConfig({
         changeOrigin: true,
       }
     }
+  },
+  build: {
+    assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        manualChunks: undefined
+      }
+    }
+  },
+  resolve: {
+    alias: {
+      '@': '/src'
+    }
   }
 })
